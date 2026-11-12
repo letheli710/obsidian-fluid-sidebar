@@ -1,0 +1,38 @@
+# Drafts a GitHub release with the plugin files when a version tag (e.g. 1.0.1) is pushed.
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+permissions:
+  contents: write
+  id-token: write # needed to sign the build attestation
+  attestations: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check tag matches manifest version
+        run: test "$(node -p "require('./manifest.json').version")" = "${GITHUB_REF_NAME}"
+
+      # Proves the release files come from this repository at this tag
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: |
+            main.js
+            styles.css
+
+      - name: Create draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --draft \
+            main.js manifest.json styles.css

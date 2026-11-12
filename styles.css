@@ -1,0 +1,108 @@
+/* Fluid Sidebar — phone only, and only with Obsidian's "Sliding sidebar" on.
+   main.js writes --cd-* every frame, inline on the element that moves (registered as
+   non-inherited, so only that element restyles). Shadow and dim are set directly. */
+
+body.fluid-sidebar.is-phone.cd-sliding {
+  --cd-peek: 66px;
+  --cd-radius: 44px;
+  /* Flat sidebar colour, a step darker than the note (same contrast as Duet) so the
+     card reads as a card. Follows the theme, light or dark. */
+  --cd-sidebar-bg: color-mix(in srgb, var(--background-secondary), #000 8%);
+  --mobile-sidebar-background: var(--cd-sidebar-bg);
+}
+/* Inside the sidebar, plugins like Notebook Navigator paint with --background-secondary. */
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer {
+  --background-secondary: var(--cd-sidebar-bg);
+}
+
+/* Sidebar width: leave only the card strip (portrait). In landscape, stop at Obsidian's own
+   maximum (450px) so the sidebar doesn't span the whole screen. Beats width snippets that
+   use !important. */
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer.mod-left,
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer.mod-right {
+  width: min(calc(100vw - var(--cd-peek)), var(--mobile-sidebar-max-width, 450px)) !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+/* Obsidian shows the sidebar at its own slide-over position one frame before main.js takes
+   over (and again for a frame after it lets go). Hold it where our parallax starts instead
+   (65px = PARALLAX in main.js), or it visibly jumps ~230px. */
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer.mod-left {
+  transform: translateX(-65px) !important;
+}
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer.mod-right {
+  transform: translateX(65px) !important;
+}
+
+/* The moving sidebar: slight parallax instead of Obsidian's slide-over. Stays visible
+   until our spring has finished (Obsidian hides it after its own 200 ms). */
+body.fluid-sidebar.is-phone.cd-sliding.cd-open.cd-side-left .workspace-drawer.mod-left,
+body.fluid-sidebar.is-phone.cd-sliding.cd-open.cd-side-right .workspace-drawer.mod-right {
+  display: flex !important;
+  transform: translateX(var(--cd-drawer-x, 0px)) !important;
+  box-shadow: none !important;
+  border: none !important;
+}
+
+/* What shows around the shrunken card = the sidebar's background. */
+body.fluid-sidebar.is-phone.cd-sliding.cd-open .workspace {
+  background-color: var(--mobile-sidebar-background);
+}
+
+/* No grey veil; the backdrop stays (transparent) so a tap on the card strip closes. */
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer-backdrop {
+  background-color: transparent !important;
+}
+
+/* The card. */
+body.fluid-sidebar.is-phone.cd-sliding.cd-open .workspace-split.mod-root {
+  z-index: calc(var(--layer-popover) + 1);
+  transform: translateX(var(--cd-x, 0px)) scale(var(--cd-scale, 1)) !important;
+  transform-origin: 0 50%;
+  border-radius: var(--cd-radius);
+  overflow: hidden;
+  pointer-events: none; /* taps fall through to the backdrop → close */
+}
+body.fluid-sidebar.is-phone.cd-sliding.cd-open.cd-side-right .workspace-split.mod-root {
+  transform-origin: 100% 50%;
+}
+body.fluid-sidebar.is-phone.cd-sliding.cd-open .workspace-split.mod-root > .cd-dim {
+  position: absolute !important;
+  inset: 0 !important;
+  width: auto !important;   /* Obsidian sizes every child of the main view (`> * { width: 0 }`) */
+  height: auto !important;
+  margin: 0 !important;
+  z-index: 1000;
+  background-color: #000;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The floating navbar rides on the card. */
+body.fluid-sidebar.is-phone.cd-sliding.cd-open .mobile-navbar {
+  z-index: calc(var(--layer-popover) + 2);
+  transform: translateX(var(--cd-x, 0px)) scale(var(--cd-scale, 1)) !important;
+  transform-origin: var(--cd-nav-ox, 50%) var(--cd-nav-oy, 50%);
+  transition: none !important;
+  pointer-events: none;
+}
+body.fluid-sidebar.is-phone.cd-sliding.cd-open .mobile-navbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-color: #000;
+  opacity: var(--cd-nav-dim, 0);
+  pointer-events: none;
+}
+
+/* Notebook Navigator's iOS floating buttons are frosted glass (backdrop blur), which flickers on
+   iPhone while the sidebar moves. Over our flat sidebar colour the blur shows nothing anyway,
+   so paint the same colour solid. (If Notebook Navigator renames these, the rule just stops matching.) */
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer .nn-mobile-toolbar-pill,
+body.fluid-sidebar.is-phone.cd-sliding .workspace-drawer .nn-mobile-toolbar-circle {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+  background: color-mix(in srgb, var(--nn-theme-mobile-toolbar-glass-bg, #fff) 45%, var(--cd-sidebar-bg)) !important;
+}

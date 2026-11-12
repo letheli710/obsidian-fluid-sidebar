@@ -1,0 +1,10 @@
+{
+  "id": "fluid-sidebar",
+  "name": "Fluid Sidebar",
+  "version": "1.0.1",
+  "minAppVersion": "1.11.0",
+  "description": "Mobile only: a fluid, native-feeling sidebar animation for iPhone and Android. Your note slides aside as a rounded card that follows your swipe, springs on release and gives a light haptic tick.",
+  "author": "letheli710",
+  "authorUrl": "https://github.com/letheli710",
+  "isDesktopOnly": false
+}
